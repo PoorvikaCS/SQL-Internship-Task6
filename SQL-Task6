@@ -1,0 +1,101 @@
+DROP TABLE IF EXISTS Employees;
+CREATE TABLE Employees (
+    emp_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    age INTEGER,
+    department TEXT,
+    salary INTEGER,
+    bonus INTEGER,
+    position TEXT,
+    manager_id INTEGER
+);
+
+INSERT INTO Employees (emp_id, name, age, department, salary, bonus, position, manager_id) VALUES
+(1, 'Anu', 30, 'HR', 50000, 5000, 'Manager', NULL),
+(2, 'Poori', 26, 'HR', 35000, 3000, 'Analyst', 1),
+(3, 'Ravi', 28, 'IT', 60000, 7000, 'Manager', NULL),
+(4, 'Divya', 24, 'IT', 40000, 4000, 'Developer', 3),
+(5, 'Arun', 25, 'IT', 45000, 4500, 'Intern', 3),
+(6, 'Neha', 29, 'Finance', 55000, 6000, 'Manager', NULL),
+(7, 'Karan', 26, 'Finance', 48000, 3500, 'Analyst', 6),
+(8, 'Megha', 23, 'Finance', 47000, 3200, 'Intern', 6),
+(9, 'John', 27, 'HR', 52000, 4500, 'Consultant', 1),
+(10, 'Sara', 25, 'IT', 39000, 3000, 'Intern', 3);
+
+SELECT name, department, salary
+FROM Employees
+WHERE salary = (
+    SELECT MAX(salary)
+    FROM Employees AS E2
+    WHERE E2.department = Employees.department
+);
+
+SELECT DISTINCT department
+FROM Employees
+WHERE department IN (
+    SELECT department
+    FROM Employees
+    GROUP BY department
+    HAVING AVG(salary) > (
+        SELECT AVG(salary) FROM Employees
+    )
+);
+
+SELECT E.name, E.salary
+FROM Employees E
+WHERE E.manager_id IS NOT NULL
+  AND E.salary > (
+    SELECT M.salary
+    FROM Employees M
+    WHERE M.emp_id = E.manager_id
+);
+
+SELECT name, salary
+FROM Employees
+WHERE salary IN (
+    SELECT DISTINCT salary
+    FROM Employees
+    ORDER BY salary DESC
+    LIMIT 3
+);
+
+SELECT 'Interns Available' AS status
+WHERE EXISTS (
+    SELECT 1 FROM Employees WHERE position = 'Intern'
+);
+
+SELECT name
+FROM Employees E
+WHERE NOT EXISTS (
+    SELECT 1 FROM Employees M WHERE E.emp_id = M.manager_id
+);
+
+SELECT name, department, salary,
+    (SELECT AVG(salary) FROM Employees) AS company_avg_salary
+FROM Employees;
+
+SELECT d.department, d.emp_count
+FROM (
+    SELECT department, COUNT(*) AS emp_count
+    FROM Employees
+    GROUP BY department
+) d
+WHERE d.emp_count > 2;
+
+SELECT E1.name, E1.department
+FROM Employees E1
+WHERE EXISTS (
+    SELECT 1
+    FROM Employees E2
+    WHERE E1.department = E2.department
+      AND E1.name = E2.name
+      AND E1.emp_id <> E2.emp_id
+);
+
+SELECT name, department, salary
+FROM Employees E
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM Employees
+    WHERE department = E.department
+);
